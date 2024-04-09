@@ -1,1 +1,3 @@
-console.log('Hello, World!');
+import { Kaiware } from '$/lib/kaiware';
+
+export default Kaiware;
