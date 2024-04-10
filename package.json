@@ -15,21 +15,30 @@
 		"build",
 		"index.d.ts"
 	],
-	"main": "./build/index.js",
+	"main": "./build/index.umd.cjs",
 	"module": "./build/index.js",
-	"types": "./index.d.ts",
+	"types": "./build/index.d.ts",
 	"exports": {
-		"types": "./index.d.ts",
-		"import": "./build/index.js"
+		".": {
+			"import": "./build/index.js",
+			"require": "./build/index.umd.cjs",
+			"types": "./build/kaiware.d.ts"
+		}
 	},
 	"devDependencies": {
+		"@babel/plugin-transform-runtime": "^7.24.3",
+		"@babel/preset-env": "^7.24.4",
+		"@rollup/plugin-babel": "^6.0.4",
+		"@types/node": "^20.12.7",
 		"@typescript-eslint/eslint-plugin": "^7.6.0",
 		"eslint": "^8.57.0",
 		"prettier": "^3.2.5",
 		"typescript": "^5.3.3",
-		"vite": "^5.0.10"
+		"vite": "^5.0.10",
+		"vite-plugin-dts": "^3.8.1"
 	},
 	"dependencies": {
+		"@babel/runtime": "^7.24.4",
 		"zod": "^3.22.4"
 	}
 }

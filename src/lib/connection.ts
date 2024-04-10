@@ -26,7 +26,7 @@ export class Connection {
 				.pipe(
 					z.object({
 						type: z.nativeEnum(MessageType),
-						data: z.record(z.string(), z.unknown()).optional()
+						data: z.record(z.unknown()).optional()
 					})
 				);
 
@@ -47,7 +47,7 @@ export class Connection {
 				case MessageType.RefreshElements:
 					this.handleRefreshElements();
 					break;
-				case MessageType.FetchStorage:
+				case MessageType.RefreshStorage:
 					this.handleFetchStorage(messageData.storageType);
 					break;
 				default:

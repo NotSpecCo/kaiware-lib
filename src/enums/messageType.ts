@@ -2,7 +2,7 @@ export enum MessageType {
 	// Incoming
 	RefreshElements = 'refresh-elements',
 	RefreshDeviceInfo = 'refresh-device-info',
-	FetchStorage = 'fetch-storage',
+	RefreshStorage = 'refresh-storage',
 
 	// Outgoing
 	DeviceInfoUpdate = 'device-info-update',
