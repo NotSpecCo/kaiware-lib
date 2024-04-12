@@ -1,4 +1,4 @@
-import { MessageType } from '$/enums/MessageType';
+import { MessageType } from '../enums';
 
 export type Message<TData = undefined> = {
 	type: MessageType;

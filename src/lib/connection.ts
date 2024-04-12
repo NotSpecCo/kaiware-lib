@@ -1,10 +1,7 @@
-import { LogLevel } from '$/enums';
-import { MessageType } from '$/enums/MessageType';
-import { Log } from '$/types';
-import { Config } from '$/types/Config';
-import { Message } from '$/types/Message';
-import { isJson } from '$/utils/isJson';
 import { z } from 'zod';
+import { LogLevel, MessageType } from '../enums';
+import { Config, Log, Message } from '../types';
+import { isJson } from '../utils';
 
 export class Connection {
 	private socket: WebSocket | null = null;

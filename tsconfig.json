@@ -2,11 +2,11 @@
 	"compilerOptions": {
 		"target": "ES6",
 		"module": "ES2015",
-		"baseUrl": ".",
-		"paths": {
-			"$": ["./src"],
-			"$/*": ["./src/*"]
-		},
+		// "baseUrl": ".",
+		// "paths": {
+		// 	"$": ["./src"],
+		// 	"$/*": ["./src/*"]
+		// },
 		"strict": true,
 		"strictNullChecks": true,
 		"noUnusedParameters": true,

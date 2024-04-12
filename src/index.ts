@@ -1,3 +1,3 @@
-import { Kaiware } from '$/lib/kaiware';
+import { Kaiware } from './lib/kaiware';
 
 export { Kaiware };

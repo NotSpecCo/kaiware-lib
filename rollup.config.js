@@ -7,7 +7,13 @@ import path from 'node:path';
 /** @type {import('rollup').RollupOptions[]} */
 export default [
 	{
-		input: ['src/index.ts'],
+		input: [
+			'src/index.ts',
+			'src/enums/index.ts',
+			'src/lib/index.ts',
+			'src/types/index.ts',
+			'src/utils/index.ts'
+		],
 		output: {
 			dir: 'build/esm',
 			format: 'esm',
@@ -51,7 +57,13 @@ export default [
 		]
 	},
 	{
-		input: ['src/index.ts'],
+		input: [
+			'src/index.ts',
+			'src/enums/index.ts',
+			'src/lib/index.ts',
+			'src/types/index.ts',
+			'src/utils/index.ts'
+		],
 		output: {
 			dir: 'build/cjs',
 			format: 'cjs',

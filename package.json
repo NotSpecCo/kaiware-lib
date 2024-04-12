@@ -1,8 +1,16 @@
 {
 	"name": "@nothing-special/kaiware-lib",
-	"private": true,
-	"version": "0.1.0",
+	"version": "0.2.0",
 	"type": "module",
+	"author": {
+		"name": "Garrett Downs",
+		"url": "https://nothingspecial.io"
+	},
+	"homepage": "https://github.com/nothingspecialdev/kaiware-lib",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/nothingspecialdev/kaiware-lib"
+	},
 	"scripts": {
 		"dev": "vite",
 		"build": "rimraf build && rollup -c --bundleConfigAsCjs",

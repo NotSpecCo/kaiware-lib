@@ -1,8 +1,6 @@
-import { LogLevel } from '$/enums/LogLevel';
-import { MessageType } from '$/enums/MessageType';
-import { Connection } from '$/lib/connection';
-import { Config } from '$/types/Config';
-import { Log } from '$/types/Log';
+import { LogLevel, MessageType } from '../enums';
+import { Config, Log } from '../types';
+import { Connection } from './connection';
 
 export class Kaiware {
 	private static config: Config | null = null;
