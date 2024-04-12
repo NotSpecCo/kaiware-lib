@@ -5,7 +5,7 @@
 	"type": "module",
 	"scripts": {
 		"dev": "vite",
-		"build": "rimraf build && tsc && rollup -c --bundleConfigAsCjs",
+		"build": "rimraf build && rollup -c --bundleConfigAsCjs",
 		"format": "prettier --check .",
 		"format:fix": "prettier --check --write .",
 		"lint": "eslint .",

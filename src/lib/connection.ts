@@ -25,7 +25,7 @@ export class Connection {
 
 			this.socket.onopen = () => {
 				console.log('WebSocket connection established');
-				this.sendMessage<Log>(MessageType.NewLog, {
+				this.sendMessage<Omit<Log, 'id'>>(MessageType.NewLog, {
 					source: this.config.sourceId,
 					level: LogLevel.Info,
 					data: ['Connection established'],

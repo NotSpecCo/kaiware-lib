@@ -71,7 +71,7 @@ export class Kaiware {
 			}
 		});
 
-		const log: Log = {
+		const log: Omit<Log, 'id'> = {
 			source: this.config!.sourceId,
 			level: level,
 			data: stringifiedData,
