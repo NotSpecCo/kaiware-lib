@@ -13,5 +13,6 @@
 	"editor.formatOnSave": true,
 	"editor.codeActionsOnSave": {
 		"source.organizeImports": "explicit"
-	}
+	},
+	"exportall.config.folderListener": ["/src/lib", "/src/enums", "/src/types", "/src/utils"]
 }

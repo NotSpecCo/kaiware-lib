@@ -1,11 +1,11 @@
 {
-	"name": "kaiware-lib",
+	"name": "@nothing-special/kaiware-lib",
 	"private": true,
 	"version": "0.1.0",
 	"type": "module",
 	"scripts": {
 		"dev": "vite",
-		"build": "tsc && vite build",
+		"build": "rimraf build && tsc && rollup -c --bundleConfigAsCjs",
 		"format": "prettier --check .",
 		"format:fix": "prettier --check --write .",
 		"lint": "eslint .",
@@ -15,24 +15,33 @@
 		"build",
 		"index.d.ts"
 	],
-	"main": "./build/index.umd.cjs",
-	"module": "./build/index.js",
-	"types": "./build/index.d.ts",
+	"types": "./build/src/index.d.ts",
 	"exports": {
 		".": {
-			"import": "./build/index.js",
-			"require": "./build/index.umd.cjs",
-			"types": "./build/kaiware.d.ts"
-		}
+			"types": "./build/esm/src/index.d.ts",
+			"import": "./build/esm/src/index.js",
+			"require": "./build/cjs/src/index.js"
+		},
+		"./lib": "./build/esm/src/lib/index.js",
+		"./types": "./build/esm/src/types/index.js",
+		"./enums": "./build/esm/src/enums/index.js",
+		"./utils": "./build/esm/src/utils/index.js"
 	},
 	"devDependencies": {
 		"@babel/plugin-transform-runtime": "^7.24.3",
 		"@babel/preset-env": "^7.24.4",
+		"@rollup/plugin-alias": "^5.1.0",
 		"@rollup/plugin-babel": "^6.0.4",
+		"@rollup/plugin-node-resolve": "^15.2.3",
+		"@rollup/plugin-typescript": "^11.1.6",
 		"@types/node": "^20.12.7",
+		"@types/rollup": "^0.54.0",
 		"@typescript-eslint/eslint-plugin": "^7.6.0",
 		"eslint": "^8.57.0",
 		"prettier": "^3.2.5",
+		"rimraf": "^5.0.5",
+		"rollup": "^4.14.1",
+		"tslib": "^2.6.2",
 		"typescript": "^5.3.3",
 		"vite": "^5.0.10",
 		"vite-plugin-dts": "^3.8.1"

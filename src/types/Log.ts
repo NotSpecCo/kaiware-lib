@@ -1,8 +1,8 @@
-import { LogLevel } from '$/types/logLevel';
+import { LogLevel } from '$/enums/LogLevel';
 
 export type Log = {
-	sourceId: string;
+	source: string;
 	level: LogLevel;
-	data: unknown;
+	data: string[];
 	timestamp: string;
 };

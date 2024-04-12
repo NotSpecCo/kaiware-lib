@@ -1,100 +1,136 @@
-import { MessageType } from '$/enums/messageType';
+import { LogLevel } from '$/enums';
+import { MessageType } from '$/enums/MessageType';
+import { Log } from '$/types';
 import { Config } from '$/types/Config';
-import { formatMessage } from '$/utils/formatMessage';
+import { Message } from '$/types/Message';
 import { isJson } from '$/utils/isJson';
 import { z } from 'zod';
 
 export class Connection {
-	private socket: WebSocket;
+	private socket: WebSocket | null = null;
 	private config: Config;
 
 	constructor(config: Config) {
 		this.config = config;
-		this.socket = new WebSocket(`ws://${config.address}:${config.port}`);
+	}
 
-		this.socket.onopen = () => {
-			console.log('WebSocket connection established');
-		};
+	connect() {
+		if (this.socket) {
+			console.log('Connection already established');
+			return;
+		}
 
-		this.socket.onmessage = (message) => {
-			console.log('Message received: ', message);
+		return new Promise<void>((resolve) => {
+			this.socket = new WebSocket(`ws://${this.config.address}:${this.config.port}`);
 
-			const messageSchema = z
-				.string()
-				.refine((val) => isJson(val), 'Must be a valid JSON string')
-				.transform((val) => JSON.parse(val))
-				.pipe(
-					z.object({
-						type: z.nativeEnum(MessageType),
-						data: z.record(z.unknown()).optional()
-					})
-				);
+			this.socket.onopen = () => {
+				console.log('WebSocket connection established');
+				this.sendMessage<Log>(MessageType.NewLog, {
+					source: this.config.sourceId,
+					level: LogLevel.Info,
+					data: ['Connection established'],
+					timestamp: new Date().toISOString()
+				});
+				resolve();
+			};
 
-			const validateMessage = messageSchema.safeParse(message.toString());
-			if (!validateMessage.success) {
-				this.socket.send(
-					JSON.stringify(formatValidationError(validateMessage.error.issues))
-				);
-				return;
-			}
+			this.socket.onmessage = (event) => {
+				console.log('Message received: ', JSON.parse(event.data));
 
-			const messageData = JSON.parse(message.data);
+				const messageSchema = z
+					.string()
+					.refine((val) => isJson(val), 'Must be a valid JSON string')
+					.transform((val) => JSON.parse(val))
+					.pipe(
+						z.object({
+							type: z.nativeEnum(MessageType),
+							data: z.any().optional()
+						})
+					);
 
-			switch (message.type) {
-				case MessageType.RefreshDeviceInfo:
-					this.handleRefreshDeviceInfo();
-					break;
-				case MessageType.RefreshElements:
-					this.handleRefreshElements();
-					break;
-				case MessageType.RefreshStorage:
-					this.handleFetchStorage(messageData.storageType);
-					break;
-				default:
-					console.log('Unknown message type received');
-					break;
-			}
-		};
+				const validateMessage = messageSchema.safeParse(event.data);
+				if (!validateMessage.success) {
+					console.log(
+						JSON.stringify(formatValidationError(validateMessage.error.issues))
+					);
+					return;
+				}
 
-		this.socket.onclose = () => {
-			console.log('WebSocket connection closed');
-		};
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				const message = JSON.parse(event.data) as Message<any>;
 
-		this.socket.onerror = (error) => {
-			console.log('WebSocket error: ', error);
-		};
+				switch (message.type) {
+					case MessageType.RefreshDeviceInfo:
+						this.handleRefreshDeviceInfo();
+						break;
+					case MessageType.RefreshElements:
+						this.handleRefreshElements();
+						break;
+					case MessageType.RefreshStorage:
+						this.handleRefreshStorage(message);
+						break;
+					default:
+						console.log('Unknown message type received');
+						break;
+				}
+			};
+
+			this.socket.onclose = () => {
+				console.log('WebSocket connection closed');
+				this.socket = null;
+			};
+
+			this.socket.onerror = (error) => {
+				console.log('WebSocket error: ', error);
+			};
+		});
 	}
 
 	close() {
+		if (!this.socket) {
+			console.log('No active connection');
+			return;
+		}
+
 		this.socket.close();
 	}
 
-	sendMessage(type: MessageType, data: unknown) {
-		const message = formatMessage(type, data);
+	sendMessage<TData = undefined>(type: MessageType, data: TData) {
+		const message = { type, data };
+		console.log('Sending message: ', message);
+
+		if (!this.socket) {
+			console.log('No active connection');
+			return;
+		}
+
 		this.socket.send(JSON.stringify(message));
 	}
 
 	private handleRefreshDeviceInfo() {
-		this.sendMessage(MessageType.RefreshDeviceInfo, {
+		this.sendMessage(MessageType.DeviceInfoUpdate, {
 			id: this.config.deviceId,
 			name: this.config.deviceName
 		});
 	}
 
 	private handleRefreshElements() {
-		this.sendMessage(MessageType.RefreshElements, document.querySelector('html')?.outerHTML);
+		this.sendMessage(
+			MessageType.ElementsUpdate,
+			document.querySelector('html')?.outerHTML ?? ''
+		);
 	}
 
-	private handleFetchStorage(storageType: 'local' | 'session') {
-		if (storageType === 'local') {
+	private handleRefreshStorage(message: Message<{ storageType: 'local' | 'session' }>) {
+		if (message.data.storageType === 'local') {
 			this.sendMessage(MessageType.StorageUpdate, {
 				type: 'local',
-				data: JSON.stringify(localStorage)
+				data: localStorage
 			});
-		} else if (storageType === 'session') {
+		} else if (message.data.storageType === 'session') {
 			this.sendMessage(MessageType.StorageUpdate, {
 				type: 'session',
-				data: JSON.stringify(sessionStorage)
+				data: sessionStorage
 			});
 		}
 	}

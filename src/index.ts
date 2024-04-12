@@ -1,3 +1,3 @@
 import { Kaiware } from '$/lib/kaiware';
 
-export default Kaiware;
+export { Kaiware };
