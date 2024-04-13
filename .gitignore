@@ -12,6 +12,7 @@ dist
 build
 *.local
 .env
+coverage
 
 # Editor directories and files
 .idea
