@@ -1,6 +1,6 @@
-export function isJson(data: string): boolean {
+export function isJson(data: unknown): boolean {
 	try {
-		JSON.parse(data);
+		JSON.parse(data as string);
 	} catch (error) {
 		return false;
 	}

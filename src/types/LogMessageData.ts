@@ -1,9 +1,8 @@
 import { LogLevel } from '../enums';
 
-export type Log = {
-	id: number;
+export type LogMessageData = {
 	source: string;
 	level: LogLevel;
-	data: unknown[];
+	data: string[];
 	timestamp: string;
 };

@@ -1,5 +1,6 @@
 import { LogLevel, MessageType } from '../enums';
-import { Config, Log } from '../types';
+import { Config, LogMessageData } from '../types';
+import { parseError } from '../utils';
 import { Connection } from './connection';
 
 export class Kaiware {
@@ -44,39 +45,21 @@ export class Kaiware {
 		const stringifiedData: string[] = data.map((a) => {
 			if (typeof a === 'string') {
 				return a;
-			} else if (a instanceof Error) {
-				return JSON.stringify(a, [
-					'message',
-					'type',
-					'name',
-					'stack',
-					'fileName',
-					'lineNumber',
-					'columnNumber'
-				]);
-			} else if (a instanceof ErrorEvent) {
-				return JSON.stringify(a, [
-					'message',
-					'type',
-					'name',
-					'stack',
-					'fileName',
-					'lineNumber',
-					'columnNumber'
-				]);
+			} else if (a instanceof Error || a instanceof ErrorEvent) {
+				return JSON.stringify(parseError(a));
 			} else {
 				return JSON.stringify(a);
 			}
 		});
 
-		const log: Omit<Log, 'id'> = {
+		const log: LogMessageData = {
 			source: this.config!.sourceId,
 			level: level,
 			data: stringifiedData,
 			timestamp: new Date().toISOString()
 		};
 
-		this.connection.sendMessage(MessageType.NewLog, log);
+		this.connection.sendMessage<LogMessageData>(MessageType.NewLog, log);
 	}
 
 	static log = {

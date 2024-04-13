@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { LogLevel, MessageType } from '../enums';
-import { Config, Log, Message } from '../types';
+import { MessageType } from '../enums';
+import { Config, Message } from '../types';
 import { isJson } from '../utils';
 
 export class Connection {
@@ -22,12 +22,6 @@ export class Connection {
 
 			this.socket.onopen = () => {
 				console.log('WebSocket connection established');
-				this.sendMessage<Omit<Log, 'id'>>(MessageType.NewLog, {
-					source: this.config.sourceId,
-					level: LogLevel.Info,
-					data: ['Connection established'],
-					timestamp: new Date().toISOString()
-				});
 				resolve();
 			};
 
