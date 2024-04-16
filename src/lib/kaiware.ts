@@ -1,5 +1,5 @@
 import { LogLevel, MessageType } from '../enums';
-import { Config, LogMessageData } from '../types';
+import { Config, GetLogResPayload } from '../types';
 import { parseError } from '../utils';
 import { Connection } from './connection';
 
@@ -52,14 +52,16 @@ export class Kaiware {
 			}
 		});
 
-		const log: LogMessageData = {
-			source: this.config!.sourceId,
-			level: level,
-			data: stringifiedData,
-			timestamp: new Date().toISOString()
-		};
-
-		this.connection.sendMessage<LogMessageData>(MessageType.NewLog, log);
+		this.connection.sendMessage<GetLogResPayload>({
+			requestId: '',
+			type: MessageType.NewLog,
+			data: {
+				source: this.config!.sourceId,
+				level: level,
+				data: stringifiedData,
+				timestamp: new Date().toISOString()
+			}
+		});
 	}
 
 	static log = {

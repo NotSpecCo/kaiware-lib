@@ -1,13 +1,28 @@
 export enum MessageType {
-	RefreshElements = 'refresh-elements',
-	RefreshDeviceInfo = 'refresh-device-info',
-	RefreshStorage = 'refresh-storage',
+	GetDeviceInfo = 'get-device-info',
+	GetDeviceInfoRes = 'get-device-info-res',
 
-	DeviceInfoUpdate = 'device-info-update',
+	GetElements = 'get-elements',
+	GetElementsRes = 'get-elements-res',
+
+	GetElementStyles = 'get-element-styles',
+	GetElementStylesRes = 'get-element-styles-res',
+	SetElementStyles = 'set-element-styles',
+	SetElementStylesRes = 'set-element-styles-res',
+
+	GetElementData = 'get-element-data',
+	GetElementDataRes = 'get-element-data-res',
+	SetElementData = 'set-element-data',
+	SetElementDataRes = 'set-element-data-res',
+
+	GetStorage = 'get-storage',
+	GetStorageRes = 'get-storage-res',
+	SetStorage = 'set-storage',
+	SetStorageRes = 'set-storage-res',
+
+	// Misc
+
 	NewLog = 'new-log',
 	ClearLogs = 'clear-logs',
-	ElementsUpdate = 'elements-update',
-	StorageUpdate = 'storage-update',
-
 	Error = 'error'
 }

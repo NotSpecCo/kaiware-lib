@@ -1,6 +1,6 @@
 {
 	"name": "@nothing-special/kaiware-lib",
-	"version": "0.3.0",
+	"version": "0.4.0",
 	"type": "module",
 	"author": {
 		"name": "Garrett Downs",
@@ -26,16 +26,34 @@
 		"index.d.ts"
 	],
 	"types": "./build/src/index.d.ts",
+	"module": "./build/src/index.mjs",
+	"main": "./build/src/index.cjs",
 	"exports": {
 		".": {
-			"types": "./build/esm/src/index.d.ts",
-			"import": "./build/esm/src/index.js",
-			"require": "./build/cjs/src/index.js"
+			"types": "./build/src/index.d.ts",
+			"import": "./build/src/index.mjs",
+			"require": "./build/src/index.cjs"
 		},
-		"./lib": "./build/esm/src/lib/index.js",
-		"./types": "./build/esm/src/types/index.js",
-		"./enums": "./build/esm/src/enums/index.js",
-		"./utils": "./build/esm/src/utils/index.js"
+		"./lib": {
+			"types": "./build/src/lib/index.d.ts",
+			"import": "./build/src/lib/index.mjs",
+			"require": "./build/src/lib/index.cjs"
+		},
+		"./types": {
+			"types": "./build/src/types/index.d.ts",
+			"import": "./build/src/types/index.mjs",
+			"require": "./build/src/types/index.cjs"
+		},
+		"./enums": {
+			"types": "./build/src/enums/index.d.ts",
+			"import": "./build/src/enums/index.mjs",
+			"require": "./build/src/enums/index.cjs"
+		},
+		"./utils": {
+			"types": "./build/src/utils/index.d.ts",
+			"import": "./build/src/utils/index.mjs",
+			"require": "./build/src/utils/index.cjs"
+		}
 	},
 	"devDependencies": {
 		"@babel/plugin-transform-runtime": "^7.24.3",

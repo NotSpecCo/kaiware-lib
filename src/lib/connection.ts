@@ -1,6 +1,19 @@
 import { z } from 'zod';
 import { MessageType } from '../enums';
-import { Config, Message } from '../types';
+import {
+	Config,
+	GetDeviceInfoPayload,
+	GetDeviceInfoResPayload,
+	GetElementDataPayload,
+	GetElementDataResPayload,
+	GetElementStylesPayload,
+	GetElementStylesResPayload,
+	GetElementsPayload,
+	GetElementsResPayload,
+	GetStoragePayload,
+	GetStorageResPayload,
+	Message
+} from '../types';
 import { isJson } from '../utils';
 
 export class Connection {
@@ -51,14 +64,20 @@ export class Connection {
 				const message = JSON.parse(event.data) as Message<any>;
 
 				switch (message.type) {
-					case MessageType.RefreshDeviceInfo:
-						this.handleRefreshDeviceInfo();
+					case MessageType.GetDeviceInfo:
+						this.handleGetDeviceInfo(message);
 						break;
-					case MessageType.RefreshElements:
-						this.handleRefreshElements();
+					case MessageType.GetElements:
+						this.handleGetElements(message);
 						break;
-					case MessageType.RefreshStorage:
-						this.handleRefreshStorage(message);
+					case MessageType.GetElementStyles:
+						this.handleGetElementStyles(message);
+						break;
+					case MessageType.GetElementData:
+						this.handleGetElementData(message);
+						break;
+					case MessageType.GetStorage:
+						this.handleGetStorage(message);
 						break;
 					default:
 						console.log('Unknown message type received');
@@ -86,8 +105,7 @@ export class Connection {
 		this.socket.close();
 	}
 
-	sendMessage<TData = undefined>(type: MessageType, data: TData) {
-		const message = { type, data };
+	sendMessage<TData = undefined>(message: Message<TData>) {
 		console.log('Sending message: ', message);
 
 		if (!this.socket) {
@@ -98,32 +116,85 @@ export class Connection {
 		this.socket.send(JSON.stringify(message));
 	}
 
-	private handleRefreshDeviceInfo() {
-		this.sendMessage(MessageType.DeviceInfoUpdate, {
-			id: this.config.deviceId,
-			name: this.config.deviceName
+	private handleGetDeviceInfo(message: Message<GetDeviceInfoPayload>) {
+		this.sendMessage<GetDeviceInfoResPayload>({
+			requestId: message.requestId,
+			type: MessageType.GetDeviceInfoRes,
+			data: {
+				id: this.config.deviceId,
+				name: this.config.deviceName,
+				connectionType: 'wifi'
+			}
 		});
 	}
 
-	private handleRefreshElements() {
-		this.sendMessage(
-			MessageType.ElementsUpdate,
-			document.querySelector('html')?.outerHTML ?? ''
-		);
+	private handleGetElements(message: Message<GetElementsPayload>) {
+		this.sendMessage<GetElementsResPayload>({
+			requestId: message.requestId,
+			type: MessageType.GetElementsRes,
+			data: document.querySelector('html')?.outerHTML ?? ''
+		});
 	}
 
-	private handleRefreshStorage(message: Message<{ storageType: 'local' | 'session' }>) {
+	private handleGetStorage(message: Message<GetStoragePayload>) {
 		if (message.data.storageType === 'local') {
-			this.sendMessage(MessageType.StorageUpdate, {
-				type: 'local',
-				data: localStorage
+			this.sendMessage<GetStorageResPayload>({
+				requestId: message.requestId,
+				type: MessageType.GetStorageRes,
+				data: {
+					storageType: 'local',
+					data: localStorage
+				}
 			});
 		} else if (message.data.storageType === 'session') {
-			this.sendMessage(MessageType.StorageUpdate, {
-				type: 'session',
-				data: sessionStorage
+			this.sendMessage<GetStorageResPayload>({
+				requestId: message.requestId,
+				type: MessageType.GetStorageRes,
+				data: {
+					storageType: 'session',
+					data: sessionStorage
+				}
 			});
 		}
+	}
+
+	private handleGetElementStyles(message: Message<GetElementStylesPayload>) {
+		console.log('Getting styles for element at index: ', message.data.index);
+
+		const element = document.querySelectorAll('*')[message.data.index];
+		console.log('Element: ', element);
+
+		const rawStyles = window.getComputedStyle(element);
+		const styles: Record<string, string> = Object.entries(rawStyles).reduce(
+			(acc, val) => {
+				acc[val[1]] = rawStyles.getPropertyValue(val[1]);
+				return acc;
+			},
+			{} as Record<string, string>
+		);
+		this.sendMessage<GetElementStylesResPayload>({
+			requestId: message.requestId,
+			type: MessageType.GetElementStylesRes,
+			data: {
+				index: message.data.index,
+				styles
+			}
+		});
+	}
+
+	private handleGetElementData(message: Message<GetElementDataPayload>) {
+		console.log('Getting data for element at index: ', message.data.index);
+
+		const element = document.querySelectorAll('*')[message.data.index];
+		console.log('Element: ', element);
+
+		// TODO: Get data for element
+
+		this.sendMessage<GetElementDataResPayload>({
+			requestId: message.requestId,
+			type: MessageType.GetElementDataRes,
+			data: {}
+		});
 	}
 }
 

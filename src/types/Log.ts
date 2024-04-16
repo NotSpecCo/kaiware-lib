@@ -4,6 +4,6 @@ export type Log = {
 	id: number;
 	source: string;
 	level: LogLevel;
-	data: unknown[];
+	data: string[];
 	timestamp: string;
 };

@@ -1,5 +1,3 @@
-export interface DeviceInfo {
-	id: string;
-	name: string;
-	connectionType?: 'wifi' | 'usb';
-}
+import { GetDeviceInfoResPayload } from './schemas';
+
+export type DeviceInfo = GetDeviceInfoResPayload;
