@@ -48,6 +48,9 @@ export class Connection {
 					case MessageType.GetElementStyles:
 						this.handleGetElementStyles(message);
 						break;
+					case MessageType.SetElementStyles:
+						this.handleSetElementStyles(message);
+						break;
 					case MessageType.GetElementData:
 						this.handleGetElementData(message);
 						break;
@@ -156,6 +159,22 @@ export class Connection {
 				index: message.data.index,
 				styles
 			}
+		});
+	}
+
+	private handleSetElementStyles(
+		message: MessageWithId & { type: MessageType.SetElementStyles }
+	) {
+		const element = document.querySelectorAll('*')[message.data.index] as HTMLElement;
+
+		Object.entries(message.data.styles).forEach(([key, value]) => {
+			element.style.setProperty(key, value);
+		});
+
+		this.sendMessage({
+			requestId: message.requestId,
+			type: MessageType.SetElementStylesRes,
+			data: null
 		});
 	}
 

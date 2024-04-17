@@ -28,6 +28,17 @@ export const getElementStylesPayloadSchema = z.object({
 });
 export type GetElementStylesPayload = z.infer<typeof getElementStylesPayloadSchema>;
 
+// SetElementStyles
+export const setElementStylesPayloadSchema = z.object({
+	index: z.number(),
+	styles: z.record(z.string())
+});
+export type SetElementStylesPayload = z.infer<typeof setElementStylesPayloadSchema>;
+
+// SetElementStylesRes
+export const setElementStylesResPayloadSchema = z.null();
+export type SetElementStylesResPayload = z.infer<typeof setElementStylesResPayloadSchema>;
+
 // GetElementStylesRes
 export const getElementStylesResPayloadSchema = z.object({
 	index: z.number(),
@@ -47,6 +58,17 @@ export const getElementDataResPayloadSchema = z.object({
 	data: z.record(z.string())
 });
 export type GetElementDataResPayload = z.infer<typeof getElementDataResPayloadSchema>;
+
+// SetElementData
+export const setElementDataPayloadSchema = z.object({
+	index: z.number(),
+	data: z.record(z.string(), z.unknown())
+});
+export type SetElementDataPayload = z.infer<typeof setElementDataPayloadSchema>;
+
+// SetElementDataRes
+export const setElementDataResPayloadSchema = z.null();
+export type SetElementDataResPayload = z.infer<typeof setElementDataResPayloadSchema>;
 
 // GetStorage
 export const getStoragePayloadSchema = z.object({
@@ -123,6 +145,16 @@ export const messageSchema = z.discriminatedUnion('type', [
 	}),
 	z.object({
 		requestId: z.string(),
+		type: z.literal(MessageType.SetElementStyles),
+		data: setElementStylesPayloadSchema
+	}),
+	z.object({
+		requestId: z.string(),
+		type: z.literal(MessageType.SetElementStylesRes),
+		data: setElementStylesResPayloadSchema
+	}),
+	z.object({
+		requestId: z.string(),
 		type: z.literal(MessageType.GetElementData),
 		data: getElementDataPayloadSchema
 	}),
@@ -130,6 +162,16 @@ export const messageSchema = z.discriminatedUnion('type', [
 		requestId: z.string(),
 		type: z.literal(MessageType.GetElementDataRes),
 		data: getElementDataResPayloadSchema
+	}),
+	z.object({
+		requestId: z.string(),
+		type: z.literal(MessageType.SetElementData),
+		data: setElementDataPayloadSchema
+	}),
+	z.object({
+		requestId: z.string(),
+		type: z.literal(MessageType.SetElementDataRes),
+		data: setElementDataResPayloadSchema
 	}),
 	z.object({
 		requestId: z.string(),
