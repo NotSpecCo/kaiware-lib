@@ -1,4 +1,4 @@
-import { describe, expect, test } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { isJson } from './isJson';
 
 describe('isJson', () => {
@@ -13,7 +13,7 @@ describe('isJson', () => {
 		['a', false]
 	];
 
-	test.each(testCases)(`%s`, (json, expected) => {
+	it.each(testCases)(`should test %s`, (json, expected) => {
 		const result = isJson(json);
 		expect(result).toBe(expected);
 	});

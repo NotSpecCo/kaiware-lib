@@ -1,5 +1,5 @@
 import { LogLevel, MessageType } from '../enums';
-import { Config, GetLogResPayload } from '../types';
+import { Config } from '../types';
 import { parseError } from '../utils';
 import { Connection } from './connection';
 
@@ -52,7 +52,7 @@ export class Kaiware {
 			}
 		});
 
-		this.connection.sendMessage<GetLogResPayload>({
+		this.connection.sendMessage({
 			requestId: '',
 			type: MessageType.NewLog,
 			data: {

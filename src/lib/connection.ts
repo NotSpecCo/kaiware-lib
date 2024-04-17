@@ -1,20 +1,6 @@
 import { z } from 'zod';
 import { MessageType } from '../enums';
-import {
-	Config,
-	GetDeviceInfoPayload,
-	GetDeviceInfoResPayload,
-	GetElementDataPayload,
-	GetElementDataResPayload,
-	GetElementStylesPayload,
-	GetElementStylesResPayload,
-	GetElementsPayload,
-	GetElementsResPayload,
-	GetStoragePayload,
-	GetStorageResPayload,
-	Message
-} from '../types';
-import { isJson } from '../utils';
+import { Config, MessageWithId, rawMessageSchema } from '../types';
 
 export class Connection {
 	private socket: WebSocket | null = null;
@@ -41,18 +27,7 @@ export class Connection {
 			this.socket.onmessage = (event) => {
 				console.log('Message received: ', JSON.parse(event.data));
 
-				const messageSchema = z
-					.string()
-					.refine((val) => isJson(val), 'Must be a valid JSON string')
-					.transform((val) => JSON.parse(val))
-					.pipe(
-						z.object({
-							type: z.nativeEnum(MessageType),
-							data: z.any().optional()
-						})
-					);
-
-				const validateMessage = messageSchema.safeParse(event.data);
+				const validateMessage = rawMessageSchema.safeParse(event.data);
 				if (!validateMessage.success) {
 					console.log(
 						JSON.stringify(formatValidationError(validateMessage.error.issues))
@@ -61,7 +36,7 @@ export class Connection {
 				}
 
 				// eslint-disable-next-line @typescript-eslint/no-explicit-any
-				const message = JSON.parse(event.data) as Message<any>;
+				const message = JSON.parse(event.data) as MessageWithId;
 
 				switch (message.type) {
 					case MessageType.GetDeviceInfo:
@@ -105,7 +80,7 @@ export class Connection {
 		this.socket.close();
 	}
 
-	sendMessage<TData = undefined>(message: Message<TData>) {
+	sendMessage(message: MessageWithId) {
 		console.log('Sending message: ', message);
 
 		if (!this.socket) {
@@ -116,8 +91,8 @@ export class Connection {
 		this.socket.send(JSON.stringify(message));
 	}
 
-	private handleGetDeviceInfo(message: Message<GetDeviceInfoPayload>) {
-		this.sendMessage<GetDeviceInfoResPayload>({
+	private handleGetDeviceInfo(message: MessageWithId & { type: MessageType.GetDeviceInfo }) {
+		this.sendMessage({
 			requestId: message.requestId,
 			type: MessageType.GetDeviceInfoRes,
 			data: {
@@ -128,17 +103,17 @@ export class Connection {
 		});
 	}
 
-	private handleGetElements(message: Message<GetElementsPayload>) {
-		this.sendMessage<GetElementsResPayload>({
+	private handleGetElements(message: MessageWithId & { type: MessageType.GetElements }) {
+		this.sendMessage({
 			requestId: message.requestId,
 			type: MessageType.GetElementsRes,
 			data: document.querySelector('html')?.outerHTML ?? ''
 		});
 	}
 
-	private handleGetStorage(message: Message<GetStoragePayload>) {
+	private handleGetStorage(message: MessageWithId & { type: MessageType.GetStorage }) {
 		if (message.data.storageType === 'local') {
-			this.sendMessage<GetStorageResPayload>({
+			this.sendMessage({
 				requestId: message.requestId,
 				type: MessageType.GetStorageRes,
 				data: {
@@ -147,7 +122,7 @@ export class Connection {
 				}
 			});
 		} else if (message.data.storageType === 'session') {
-			this.sendMessage<GetStorageResPayload>({
+			this.sendMessage({
 				requestId: message.requestId,
 				type: MessageType.GetStorageRes,
 				data: {
@@ -158,7 +133,9 @@ export class Connection {
 		}
 	}
 
-	private handleGetElementStyles(message: Message<GetElementStylesPayload>) {
+	private handleGetElementStyles(
+		message: MessageWithId & { type: MessageType.GetElementStyles }
+	) {
 		console.log('Getting styles for element at index: ', message.data.index);
 
 		const element = document.querySelectorAll('*')[message.data.index];
@@ -172,7 +149,7 @@ export class Connection {
 			},
 			{} as Record<string, string>
 		);
-		this.sendMessage<GetElementStylesResPayload>({
+		this.sendMessage({
 			requestId: message.requestId,
 			type: MessageType.GetElementStylesRes,
 			data: {
@@ -182,7 +159,7 @@ export class Connection {
 		});
 	}
 
-	private handleGetElementData(message: Message<GetElementDataPayload>) {
+	private handleGetElementData(message: MessageWithId & { type: MessageType.GetElementData }) {
 		console.log('Getting data for element at index: ', message.data.index);
 
 		const element = document.querySelectorAll('*')[message.data.index];
@@ -190,10 +167,10 @@ export class Connection {
 
 		// TODO: Get data for element
 
-		this.sendMessage<GetElementDataResPayload>({
+		this.sendMessage({
 			requestId: message.requestId,
 			type: MessageType.GetElementDataRes,
-			data: {}
+			data: { index: message.data.index, data: {} }
 		});
 	}
 }

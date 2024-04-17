@@ -2,50 +2,6 @@ import { z } from 'zod';
 import { LogLevel, MessageType } from '../enums';
 import { isJson } from '../utils';
 
-// RawMessage
-export const rawMessageSchema = z
-	.string()
-	.refine((val) => isJson(val), 'Must be a valid JSON string')
-	.transform((val) => JSON.parse(val))
-	.pipe(
-		z.object({
-			requestId: z.string().optional(),
-			type: z.nativeEnum(MessageType),
-			data: z.any().optional()
-		})
-	);
-export type RawMessage = z.infer<typeof rawMessageSchema>;
-
-export function buildRawMessageSchema<TData = undefined>(dataSchema: z.ZodType<TData>) {
-	return z
-		.string()
-		.refine((val) => isJson(val), 'Must be a valid JSON string')
-		.transform((val) => JSON.parse(val))
-		.pipe(
-			z.object({
-				requestId: z.string().optional(),
-				type: z.nativeEnum(MessageType),
-				data: dataSchema
-			})
-		);
-}
-
-// Message
-export const messageSchema = z.object({
-	requestId: z.string(),
-	type: z.nativeEnum(MessageType),
-	data: z.unknown().optional()
-});
-export type Message<T = undefined> = z.infer<typeof messageSchema> & { data: T };
-
-export function buildMessageSchema<TData = undefined>(dataSchema: z.ZodType<TData>) {
-	return z.object({
-		requestId: z.string().optional(),
-		type: z.nativeEnum(MessageType),
-		data: dataSchema
-	});
-}
-
 // GetDeviceInfo
 export const getDeviceInfoPayloadSchema = z.null();
 export type GetDeviceInfoPayload = z.infer<typeof getDeviceInfoPayloadSchema>;
@@ -86,7 +42,10 @@ export const getElementDataPayloadSchema = z.object({
 export type GetElementDataPayload = z.infer<typeof getElementDataPayloadSchema>;
 
 // GetElementDataRes
-export const getElementDataResPayloadSchema = z.object({});
+export const getElementDataResPayloadSchema = z.object({
+	index: z.number(),
+	data: z.record(z.string())
+});
 export type GetElementDataResPayload = z.infer<typeof getElementDataResPayloadSchema>;
 
 // GetStorage
@@ -98,14 +57,14 @@ export type GetStoragePayload = z.infer<typeof getStoragePayloadSchema>;
 // GetStorageRes
 export const getStorageResPayloadSchema = z.object({
 	storageType: z.union([z.literal('local'), z.literal('session')]),
-	data: z.unknown()
+	data: z.record(z.string())
 });
 export type GetStorageResPayload = z.infer<typeof getStorageResPayloadSchema>;
 
 // SetStorage
 export const setStoragePayloadSchema = z.object({
 	storageType: z.union([z.literal('local'), z.literal('session')]),
-	data: z.unknown()
+	data: z.record(z.string())
 });
 export type SetStoragePayload = z.infer<typeof setStoragePayloadSchema>;
 
@@ -129,3 +88,96 @@ export type ClearLogsPayload = z.infer<typeof clearLogsPayloadSchema>;
 // ClearLogsRes
 export const clearLogsResPayloadSchema = z.null();
 export type ClearLogsResPayload = z.infer<typeof clearLogsResPayloadSchema>;
+
+// Message
+export const messageSchema = z.discriminatedUnion('type', [
+	z.object({
+		requestId: z.string(),
+		type: z.literal(MessageType.GetDeviceInfo),
+		data: getDeviceInfoPayloadSchema
+	}),
+	z.object({
+		requestId: z.string(),
+		type: z.literal(MessageType.GetDeviceInfoRes),
+		data: getDeviceInfoResPayloadSchema
+	}),
+	z.object({
+		requestId: z.string(),
+		type: z.literal(MessageType.GetElements),
+		data: getElementsPayloadSchema
+	}),
+	z.object({
+		requestId: z.string(),
+		type: z.literal(MessageType.GetElementsRes),
+		data: getElementsResPayloadSchema
+	}),
+	z.object({
+		requestId: z.string(),
+		type: z.literal(MessageType.GetElementStyles),
+		data: getElementStylesPayloadSchema
+	}),
+	z.object({
+		requestId: z.string(),
+		type: z.literal(MessageType.GetElementStylesRes),
+		data: getElementStylesResPayloadSchema
+	}),
+	z.object({
+		requestId: z.string(),
+		type: z.literal(MessageType.GetElementData),
+		data: getElementDataPayloadSchema
+	}),
+	z.object({
+		requestId: z.string(),
+		type: z.literal(MessageType.GetElementDataRes),
+		data: getElementDataResPayloadSchema
+	}),
+	z.object({
+		requestId: z.string(),
+		type: z.literal(MessageType.GetStorage),
+		data: getStoragePayloadSchema
+	}),
+	z.object({
+		requestId: z.string(),
+		type: z.literal(MessageType.GetStorageRes),
+		data: getStorageResPayloadSchema
+	}),
+	z.object({
+		requestId: z.string(),
+		type: z.literal(MessageType.SetStorage),
+		data: setStoragePayloadSchema
+	}),
+	z.object({
+		requestId: z.string(),
+		type: z.literal(MessageType.SetStorageRes),
+		data: setStorageResPayloadSchema
+	}),
+	z.object({
+		requestId: z.string(),
+		type: z.literal(MessageType.NewLog),
+		data: getLogResPayloadSchema
+	}),
+	z.object({
+		requestId: z.string(),
+		type: z.literal(MessageType.ClearLogs),
+		data: clearLogsPayloadSchema
+	}),
+	z.object({
+		requestId: z.string(),
+		type: z.literal(MessageType.ClearLogsRes),
+		data: clearLogsResPayloadSchema
+	})
+]);
+type OmitRequestId<T> = {
+	[Property in keyof T as Exclude<Property, 'requestId'>]: T[Property];
+};
+
+export type MessageWithId = z.infer<typeof messageSchema>;
+export type Message = OmitRequestId<MessageWithId>;
+
+// RawMessage
+export const rawMessageSchema = z
+	.string()
+	.refine((val) => isJson(val), 'Must be a valid JSON string')
+	.transform((val) => JSON.parse(val))
+	.pipe(messageSchema);
+export type RawMessage = z.infer<typeof rawMessageSchema>;
