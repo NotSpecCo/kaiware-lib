@@ -3,33 +3,37 @@ import { MessageType } from '../enums';
 import { Config, MessageWithId, rawMessageSchema } from '../types';
 
 export class Connection {
-	private socket: WebSocket | null = null;
 	private config: Config;
+	private socket: WebSocket | null = null;
+	private cleanConsole: Console;
 
-	constructor(config: Config) {
+	constructor(config: Config, cleanConsole: Console) {
 		this.config = config;
+		this.cleanConsole = cleanConsole;
 	}
 
 	connect() {
 		if (this.socket) {
-			console.log('Connection already established');
+			this.cleanConsole.log('Connection already established');
 			return;
 		}
 
-		return new Promise<void>((resolve) => {
+		return new Promise<void>((resolve, reject) => {
 			this.socket = new WebSocket(`ws://${this.config.address}:${this.config.port}`);
+			let isConnectionEstablished = false;
 
 			this.socket.onopen = () => {
-				console.log('WebSocket connection established');
+				this.cleanConsole.log('WebSocket connection established');
+				isConnectionEstablished = true;
 				resolve();
 			};
 
 			this.socket.onmessage = (event) => {
-				console.log('Message received: ', JSON.parse(event.data));
+				this.cleanConsole.log('Message received: ', JSON.parse(event.data));
 
 				const validateMessage = rawMessageSchema.safeParse(event.data);
 				if (!validateMessage.success) {
-					console.log(
+					this.cleanConsole.log(
 						JSON.stringify(formatValidationError(validateMessage.error.issues))
 					);
 					return;
@@ -58,25 +62,33 @@ export class Connection {
 						this.handleGetStorage(message);
 						break;
 					default:
-						console.log('Unknown message type received');
+						this.cleanConsole.log(`Unknown message type received: ${message.type}`);
 						break;
 				}
 			};
 
 			this.socket.onclose = () => {
-				console.log('WebSocket connection closed');
+				this.cleanConsole.log('WebSocket connection closed');
 				this.socket = null;
+
+				if (!isConnectionEstablished) {
+					reject();
+				}
 			};
 
 			this.socket.onerror = (error) => {
-				console.log('WebSocket error: ', error);
+				this.cleanConsole.log('WebSocket error: ', error);
+
+				if (!isConnectionEstablished) {
+					reject();
+				}
 			};
 		});
 	}
 
 	close() {
 		if (!this.socket) {
-			console.log('No active connection');
+			this.cleanConsole.log('No active connection');
 			return;
 		}
 
@@ -84,10 +96,10 @@ export class Connection {
 	}
 
 	sendMessage(message: MessageWithId) {
-		console.log('Sending message: ', message);
+		this.cleanConsole.log('Sending message: ', message);
 
 		if (!this.socket) {
-			console.log('No active connection');
+			this.cleanConsole.log('No active connection');
 			return;
 		}
 
@@ -139,10 +151,7 @@ export class Connection {
 	private handleGetElementStyles(
 		message: MessageWithId & { type: MessageType.GetElementStyles }
 	) {
-		console.log('Getting styles for element at index: ', message.data.index);
-
 		const element = document.querySelectorAll('*')[message.data.index];
-		console.log('Element: ', element);
 
 		const rawStyles = window.getComputedStyle(element);
 		const styles: Record<string, string> = Object.entries(rawStyles).reduce(
@@ -179,10 +188,7 @@ export class Connection {
 	}
 
 	private handleGetElementData(message: MessageWithId & { type: MessageType.GetElementData }) {
-		console.log('Getting data for element at index: ', message.data.index);
-
-		const element = document.querySelectorAll('*')[message.data.index];
-		console.log('Element: ', element);
+		// const element = document.querySelectorAll('*')[message.data.index];
 
 		// TODO: Get data for element
 
