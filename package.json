@@ -19,7 +19,8 @@
 		"lint:fix": "eslint . --fix",
 		"test": "vitest",
 		"test:watch": "vitest --watch",
-		"test:ci": "vitest --coverage"
+		"test:ci": "vitest --coverage",
+		"commit": "git-cz"
 	},
 	"files": [
 		"build",
@@ -62,14 +63,20 @@
 		"@rollup/plugin-babel": "^6.0.4",
 		"@rollup/plugin-node-resolve": "^15.2.3",
 		"@rollup/plugin-typescript": "^11.1.6",
+		"@semantic-release/changelog": "^6.0.3",
+		"@semantic-release/exec": "^6.0.3",
+		"@semantic-release/git": "^10.0.1",
 		"@types/node": "^20.12.7",
 		"@typescript-eslint/eslint-plugin": "^7.6.0",
 		"@vitest/coverage-v8": "^1.5.0",
 		"@vitest/ui": "^1.5.0",
+		"commitizen": "^4.3.0",
+		"cz-conventional-changelog": "^3.3.0",
 		"eslint": "^8.57.0",
 		"prettier": "^3.2.5",
 		"rimraf": "^5.0.5",
 		"rollup": "^4.14.1",
+		"semantic-release": "^23.0.8",
 		"tslib": "^2.6.2",
 		"typescript": "^5.3.3",
 		"vite": "^5.2.8",
@@ -78,5 +85,10 @@
 	"dependencies": {
 		"@babel/runtime": "^7.24.4",
 		"zod": "^3.22.4"
+	},
+	"config": {
+		"commitizen": {
+			"path": "./node_modules/cz-conventional-changelog"
+		}
 	}
 }

@@ -111,6 +111,65 @@ export type ClearLogsPayload = z.infer<typeof clearLogsPayloadSchema>;
 export const clearLogsResPayloadSchema = z.null();
 export type ClearLogsResPayload = z.infer<typeof clearLogsResPayloadSchema>;
 
+// NetworkRequestUpdate
+export const networkRequestSchema = z.object({
+	requestId: z.string(),
+	url: z.string(),
+	method: z.union([
+		z.literal('get'),
+		z.literal('post'),
+		z.literal('put'),
+		z.literal('delete'),
+		z.literal('patch')
+	]),
+	lifecycleStatus: z.union([
+		z.literal('pending'),
+		z.literal('success'),
+		z.literal('error'),
+		z.literal('aborted'),
+		z.literal('timeout')
+	]),
+	headers: z.array(z.object({ key: z.string(), value: z.string() })).optional(),
+	body: z.string().optional(),
+	startTime: z.number(),
+	endTime: z.number().optional(),
+	responseStatus: z.number().optional(),
+	responseHeaders: z.array(z.object({ key: z.string(), value: z.string() })).optional(),
+	responseBody: z.string().optional()
+});
+export type NetworkRequest = z.infer<typeof networkRequestSchema>;
+
+export const networkRequestUpdateResPayload = z.object({
+	requestId: z.string(),
+	url: z.string().optional(),
+	method: z
+		.union([
+			z.literal('get'),
+			z.literal('post'),
+			z.literal('put'),
+			z.literal('delete'),
+			z.literal('patch')
+		])
+		.optional(),
+	lifecycleStatus: z
+		.union([
+			z.literal('pending'),
+			z.literal('success'),
+			z.literal('error'),
+			z.literal('aborted'),
+			z.literal('timeout')
+		])
+		.optional(),
+	headers: z.array(z.object({ key: z.string(), value: z.string() })).optional(),
+	body: z.string().optional(),
+	startTime: z.number().optional(),
+	endTime: z.number().optional(),
+	responseStatus: z.number().optional(),
+	responseHeaders: z.array(z.object({ key: z.string(), value: z.string() })).optional(),
+	responseBody: z.string().optional()
+});
+export type NetworkRequestUpdateResPayload = z.infer<typeof networkRequestUpdateResPayload>;
+
 // Message
 export const messageSchema = z.discriminatedUnion('type', [
 	z.object({
@@ -207,6 +266,11 @@ export const messageSchema = z.discriminatedUnion('type', [
 		requestId: z.string(),
 		type: z.literal(MessageType.ClearLogsRes),
 		data: clearLogsResPayloadSchema
+	}),
+	z.object({
+		requestId: z.string(),
+		type: z.literal(MessageType.NetworkRequestUpdate),
+		data: networkRequestUpdateResPayload
 	})
 ]);
 type OmitRequestId<T> = {
