@@ -230,7 +230,8 @@ export class Kaiware {
 					lifecycleStatus: 'success',
 					responseStatus: this.status,
 					responseHeaders,
-					responseBody: this.responseText
+					responseBody: this.responseText,
+					responseSize: new Blob([this.responseText]).size
 				});
 			});
 

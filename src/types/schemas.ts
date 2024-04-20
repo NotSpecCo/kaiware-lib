@@ -111,7 +111,7 @@ export type ClearLogsPayload = z.infer<typeof clearLogsPayloadSchema>;
 export const clearLogsResPayloadSchema = z.null();
 export type ClearLogsResPayload = z.infer<typeof clearLogsResPayloadSchema>;
 
-// NetworkRequestUpdate
+// NetworkRequest
 export const networkRequestSchema = z.object({
 	requestId: z.string(),
 	url: z.string(),
@@ -135,10 +135,12 @@ export const networkRequestSchema = z.object({
 	endTime: z.number().optional(),
 	responseStatus: z.number().optional(),
 	responseHeaders: z.array(z.object({ key: z.string(), value: z.string() })).optional(),
-	responseBody: z.string().optional()
+	responseBody: z.string().optional(),
+	responseSize: z.number().optional()
 });
 export type NetworkRequest = z.infer<typeof networkRequestSchema>;
 
+// NetworkRequestUpdateResPayload
 export const networkRequestUpdateResPayload = z.object({
 	requestId: z.string(),
 	url: z.string().optional(),
@@ -166,7 +168,8 @@ export const networkRequestUpdateResPayload = z.object({
 	endTime: z.number().optional(),
 	responseStatus: z.number().optional(),
 	responseHeaders: z.array(z.object({ key: z.string(), value: z.string() })).optional(),
-	responseBody: z.string().optional()
+	responseBody: z.string().optional(),
+	responseSize: z.number().optional()
 });
 export type NetworkRequestUpdateResPayload = z.infer<typeof networkRequestUpdateResPayload>;
 
