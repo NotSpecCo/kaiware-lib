@@ -1,5 +1,7 @@
 import { LogLevel, MessageType } from '../enums';
-import { Config } from '../types';
+import { ExtendedXMLHttpRequest } from '../internal/types/ExtendedXMLHttpRequest';
+import { saveDataToNetworkRequest } from '../internal/utils/saveDataToNetworkRequest';
+import { Config, NetworkRequest, NetworkRequestUpdateResPayload } from '../types';
 import { parseError } from '../utils';
 import { Connection } from './connection';
 
@@ -17,11 +19,13 @@ export class Kaiware {
 			enableConsoleWarnHook: false,
 			enableConsoleErrorHook: false,
 			enableGlobalErrorListener: false,
+			enableNetworkRequestHook: false,
 			...config
 		};
 
 		this.cloneConsole();
 		this.configureLogging();
+		this.configureNetworkRequests();
 	}
 
 	cloneConsole() {
@@ -159,4 +163,138 @@ export class Kaiware {
 			this.sendLog(LogLevel.Error, params);
 		}
 	};
+
+	configureNetworkRequests() {
+		if (!this.config.enableNetworkRequestHook) {
+			return;
+		}
+
+		// eslint-disable-next-line @typescript-eslint/no-this-alias
+		const self = this;
+
+		const cleanSend = XMLHttpRequest.prototype.send;
+		const cleanOpen = XMLHttpRequest.prototype.open;
+		const cleanSetRequestHeader = XMLHttpRequest.prototype.setRequestHeader;
+
+		XMLHttpRequest.prototype.open = function (
+			method: string,
+			url: string | URL,
+			async?: boolean,
+			username?: string | null,
+			password?: string | null
+		) {
+			saveDataToNetworkRequest(this as ExtendedXMLHttpRequest, {
+				url: url.toString(),
+				method: method.toLowerCase() as NetworkRequest['method']
+			});
+
+			cleanOpen.apply(this, [method, url, async as boolean, username, password]);
+		};
+
+		XMLHttpRequest.prototype.setRequestHeader = function (header: string, value: string) {
+			saveDataToNetworkRequest(this as ExtendedXMLHttpRequest, {
+				headers: [{ key: header, value }]
+			});
+
+			cleanSetRequestHeader.apply(this, [header, value]);
+		};
+
+		XMLHttpRequest.prototype.send = function (body?: Document | XMLHttpRequestBodyInit | null) {
+			self.sendNetworkRequestUpdate({
+				...(this as ExtendedXMLHttpRequest).kaiware,
+				body: body ? (typeof body === 'string' ? body : JSON.stringify(body)) : undefined,
+				startTime: Date.now(),
+				lifecycleStatus: 'pending'
+			});
+
+			this.addEventListener('load', () => {
+				const responseHeaders = this.getAllResponseHeaders()
+					.split('\n')
+					.reduce(
+						(acc, header) => {
+							const index = header.indexOf(':');
+							const key = header.slice(0, index);
+							const value = header.slice(index + 1);
+
+							if (key && value) {
+								acc.push({ key: key.trim(), value: value.trim() });
+							}
+							return acc;
+						},
+						[] as { key: string; value: string }[]
+					);
+
+				self.sendNetworkRequestUpdate({
+					requestId: (this as ExtendedXMLHttpRequest).kaiware.requestId,
+					endTime: Date.now(),
+					lifecycleStatus: 'success',
+					responseStatus: this.status,
+					responseHeaders,
+					responseBody: this.responseText
+				});
+			});
+
+			this.addEventListener('error', () => {
+				const responseHeaders = this.getAllResponseHeaders()
+					.split('\n')
+					.reduce(
+						(acc, header) => {
+							const index = header.indexOf(':');
+							const key = header.slice(0, index);
+							const value = header.slice(index + 1);
+
+							if (key && value) {
+								acc.push({ key: key.trim(), value: value.trim() });
+							}
+							return acc;
+						},
+						[] as { key: string; value: string }[]
+					);
+
+				self.sendNetworkRequestUpdate({
+					requestId: (this as ExtendedXMLHttpRequest).kaiware.requestId,
+					endTime: Date.now(),
+					lifecycleStatus: 'error',
+					responseStatus: this.status,
+					responseHeaders,
+					responseBody: this.responseText
+				});
+			});
+
+			this.addEventListener('abort', () => {
+				self.sendNetworkRequestUpdate({
+					requestId: (this as ExtendedXMLHttpRequest).kaiware.requestId,
+					endTime: Date.now(),
+					lifecycleStatus: 'aborted',
+					responseStatus: this.status,
+					responseBody: this.responseText
+				});
+			});
+
+			this.addEventListener('timeout', () => {
+				self.sendNetworkRequestUpdate({
+					requestId: (this as ExtendedXMLHttpRequest).kaiware.requestId,
+					endTime: Date.now(),
+					lifecycleStatus: 'timeout',
+					responseStatus: this.status,
+					responseBody: this.responseText
+				});
+			});
+
+			return cleanSend.apply(this, [body]);
+		};
+	}
+
+	private sendNetworkRequestUpdate(request: NetworkRequestUpdateResPayload) {
+		if (!this.connection) {
+			this.cleanConsole.error('No active connection');
+			return;
+		}
+
+		this.connection.sendMessage({
+			requestId: '',
+			type: MessageType.NetworkRequestUpdate,
+			data: request
+		});
+	}
 }

@@ -29,5 +29,6 @@ export enum MessageType {
 	// Misc
 
 	NewLog = 'new-log',
+	NetworkRequestUpdate = 'network-request-update',
 	Error = 'error'
 }
