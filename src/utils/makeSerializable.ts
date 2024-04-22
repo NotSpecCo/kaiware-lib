@@ -5,8 +5,9 @@ export function makeSerializable(obj: object, spaces = 2): object {
 
 	const keys = getObjectKeys(obj);
 	keys.forEach((key) => {
-		newObj[key] = (obj as { [key: string]: unknown })[key];
+		const val = (obj as { [key: string]: unknown })[key];
+		newObj[key] = typeof val === 'function' ? `${val.name}()` : val;
 	});
 
-	return JSON.parse(JSON.stringify(newObj, null, spaces));
+	return JSON.parse(JSON.stringify(newObj, keys, spaces));
 }

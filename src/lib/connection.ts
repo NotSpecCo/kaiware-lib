@@ -1,7 +1,6 @@
-import { z } from 'zod';
 import { MessageType } from '../enums';
 import { Config, ConsoleCommandResPayload, MessageWithId, rawMessageSchema } from '../types';
-import { makeSerializable, parseConsoleCommand, stringifyObject } from '../utils';
+import { makeSerializable, parseConsoleCommand } from '../utils';
 
 export class Connection {
 	private config: Config;
@@ -230,10 +229,13 @@ export class Connection {
 
 			let responseData;
 			if (typeof currentValue === 'object' && !Array.isArray(currentValue)) {
-				responseData = stringifyObject(currentValue ?? {});
-				console.log('responseData', responseData);
+				responseData = makeSerializable(currentValue ?? {});
 			} else if (Array.isArray(currentValue)) {
 				responseData = currentValue.map((val) => makeSerializable(val));
+			} else if (typeof currentValue === 'function') {
+				responseData = `${currentValue.name}()`;
+			} else {
+				responseData = currentValue;
 			}
 
 			response = {
@@ -241,6 +243,7 @@ export class Connection {
 			};
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		} catch (err: any) {
+			this.cleanConsole.error(err);
 			response = { error: err?.message ?? 'Unknown error' };
 		}
 
