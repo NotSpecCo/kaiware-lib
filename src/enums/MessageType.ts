@@ -26,6 +26,9 @@ export enum MessageType {
 	ClearLogs = 'clear-logs',
 	ClearLogsRes = 'clear-logs-res',
 
+	ExecuteConsoleCommand = 'execute-console-command',
+	ExecuteConsoleCommandRes = 'execute-console-command-res',
+
 	// Misc
 
 	NewLog = 'new-log',

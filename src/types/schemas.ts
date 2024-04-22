@@ -113,6 +113,7 @@ export type ClearLogsResPayload = z.infer<typeof clearLogsResPayloadSchema>;
 
 // NetworkRequest
 export const networkRequestSchema = z.object({
+	id: z.number(),
 	requestId: z.string(),
 	url: z.string(),
 	method: z.union([
@@ -133,6 +134,7 @@ export const networkRequestSchema = z.object({
 	body: z.string().optional(),
 	startTime: z.number(),
 	endTime: z.number().optional(),
+	duration: z.number().optional(),
 	responseStatus: z.number().optional(),
 	responseHeaders: z.array(z.object({ key: z.string(), value: z.string() })).optional(),
 	responseBody: z.string().optional(),
@@ -166,12 +168,36 @@ export const networkRequestUpdateResPayload = z.object({
 	body: z.string().optional(),
 	startTime: z.number().optional(),
 	endTime: z.number().optional(),
+	duration: z.number().optional(),
 	responseStatus: z.number().optional(),
 	responseHeaders: z.array(z.object({ key: z.string(), value: z.string() })).optional(),
 	responseBody: z.string().optional(),
 	responseSize: z.number().optional()
 });
 export type NetworkRequestUpdateResPayload = z.infer<typeof networkRequestUpdateResPayload>;
+
+// ConsoleCommandPayload
+export const consoleCommandPayloadSchema = z.object({
+	command: z.string()
+});
+export type ConsoleCommandPayload = z.infer<typeof consoleCommandPayloadSchema>;
+
+// ConsoleCommandResPayload
+export const consoleCommandResPayloadSchema = z.object({
+	result: z.unknown().optional(),
+	error: z.string().optional()
+});
+export type ConsoleCommandResPayload = z.infer<typeof consoleCommandResPayloadSchema>;
+
+export type ConsoleCommand = {
+	steps: CommandStep[];
+};
+
+export type CommandStep = {
+	type: 'property' | 'function' | 'array';
+	value: string;
+	params: unknown[];
+};
 
 // Message
 export const messageSchema = z.discriminatedUnion('type', [
@@ -274,6 +300,16 @@ export const messageSchema = z.discriminatedUnion('type', [
 		requestId: z.string(),
 		type: z.literal(MessageType.NetworkRequestUpdate),
 		data: networkRequestUpdateResPayload
+	}),
+	z.object({
+		requestId: z.string(),
+		type: z.literal(MessageType.ExecuteConsoleCommand),
+		data: consoleCommandPayloadSchema
+	}),
+	z.object({
+		requestId: z.string(),
+		type: z.literal(MessageType.ExecuteConsoleCommandRes),
+		data: consoleCommandResPayloadSchema
 	})
 ]);
 type OmitRequestId<T> = {

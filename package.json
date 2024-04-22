@@ -1,6 +1,6 @@
 {
 	"name": "@nothing-special/kaiware-lib",
-	"version": "0.7.0",
+	"version": "0.8.0",
 	"type": "module",
 	"author": {
 		"name": "Garrett Downs",
@@ -13,6 +13,7 @@
 	},
 	"scripts": {
 		"build": "rimraf build && rollup -c --bundleConfigAsCjs",
+		"build:watch": "rimraf build && rollup -c --bundleConfigAsCjs --watch",
 		"format": "prettier --check .",
 		"format:fix": "prettier --check --write .",
 		"lint": "eslint .",

@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { MessageType } from '../enums';
-import { Config, MessageWithId, rawMessageSchema } from '../types';
+import { Config, ConsoleCommandResPayload, MessageWithId, rawMessageSchema } from '../types';
+import { makeSerializable, parseConsoleCommand, stringifyObject } from '../utils';
 
 export class Connection {
 	private config: Config;
@@ -60,6 +61,9 @@ export class Connection {
 						break;
 					case MessageType.GetStorage:
 						this.handleGetStorage(message);
+						break;
+					case MessageType.ExecuteConsoleCommand:
+						this.handleConsoleCommand(message);
 						break;
 					default:
 						this.cleanConsole.log(`Unknown message type received: ${message.type}`);
@@ -196,6 +200,54 @@ export class Connection {
 			requestId: message.requestId,
 			type: MessageType.GetElementDataRes,
 			data: { index: message.data.index, data: {} }
+		});
+	}
+
+	private async handleConsoleCommand(
+		message: MessageWithId & { type: MessageType.ExecuteConsoleCommand }
+	) {
+		const consoleCommand = parseConsoleCommand(message.data.command);
+
+		let response: ConsoleCommandResPayload = {};
+		let currentValue: unknown = window;
+		try {
+			for (const step of consoleCommand.steps) {
+				switch (step.type) {
+					case 'property':
+						// eslint-disable-next-line @typescript-eslint/no-explicit-any
+						currentValue = (currentValue as any)[step.value];
+						break;
+					case 'function':
+						// eslint-disable-next-line @typescript-eslint/no-explicit-any
+						currentValue = await (currentValue as any)[step.value](...step.params);
+						break;
+					case 'array':
+						// eslint-disable-next-line @typescript-eslint/no-explicit-any
+						currentValue = (currentValue as any)[Number(step.value)];
+						break;
+				}
+			}
+
+			let responseData;
+			if (typeof currentValue === 'object' && !Array.isArray(currentValue)) {
+				responseData = stringifyObject(currentValue ?? {});
+				console.log('responseData', responseData);
+			} else if (Array.isArray(currentValue)) {
+				responseData = currentValue.map((val) => makeSerializable(val));
+			}
+
+			response = {
+				result: responseData
+			};
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		} catch (err: any) {
+			response = { error: err?.message ?? 'Unknown error' };
+		}
+
+		this.sendMessage({
+			requestId: message.requestId,
+			type: MessageType.ExecuteConsoleCommandRes,
+			data: response
 		});
 	}
 }
