@@ -1,3 +1,4 @@
+import { z } from 'zod';
 import { MessageType } from '../enums';
 import { Config, ConsoleCommandResPayload, MessageWithId, rawMessageSchema } from '../types';
 import { makeSerializable, parseConsoleCommand } from '../utils';
