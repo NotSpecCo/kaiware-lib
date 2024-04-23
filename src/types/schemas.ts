@@ -178,7 +178,8 @@ export type NetworkRequestUpdateResPayload = z.infer<typeof networkRequestUpdate
 
 // ConsoleCommandPayload
 export const consoleCommandPayloadSchema = z.object({
-	command: z.string()
+	command: z.string(),
+	parseDepth: z.number().optional()
 });
 export type ConsoleCommandPayload = z.infer<typeof consoleCommandPayloadSchema>;
 

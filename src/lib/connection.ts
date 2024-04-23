@@ -230,11 +230,13 @@ export class Connection {
 
 			let responseData;
 			if (typeof currentValue === 'object' && !Array.isArray(currentValue)) {
-				responseData = makeSerializable(currentValue ?? {});
+				responseData = makeSerializable(currentValue ?? {}, message.data.parseDepth);
 			} else if (Array.isArray(currentValue)) {
-				responseData = currentValue.map((val) => makeSerializable(val));
+				responseData = currentValue.map((val) =>
+					makeSerializable(val, message.data.parseDepth)
+				);
 			} else if (typeof currentValue === 'function') {
-				responseData = `${currentValue.name}()`;
+				responseData = `function()`;
 			} else {
 				responseData = currentValue;
 			}
